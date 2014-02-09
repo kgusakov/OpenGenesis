@@ -62,9 +62,11 @@ class GenesisRestService(storeService: StoreService,
 
         result match {
           case Success(envId) => {
+            log.info("Environment '#{envId}' successful created")
             config.id.foreach { cId =>
               val (users, groups) = envAccessService.getConfigAccessGrantees(cId)
               envAccessService.grantAccess(envId, users, groups)
+              log.info("Access for #{envId} granted")
             }
             timeToLive.foreach { ttl =>
               val destroyDate = new Date(System.currentTimeMillis() + ttl)

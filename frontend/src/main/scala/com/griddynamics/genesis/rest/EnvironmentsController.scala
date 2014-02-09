@@ -347,6 +347,7 @@ class EnvironmentsController extends RestApiExceptionsHandler {
     val parameters = extractMapValue("parameters", requestMap)
     implicit val securityContext = SecurityContextHolder.getContext
     val async: Accepted[ExtendedResult[Int]] = serviceActor.async {
+      log.info("Request workflow #{workflowName} for environment #{envId}")
       genesisService.requestWorkflow(envId, projectId, workflowName, extractVariables(parameters), getCurrentUser)
     }
     log.debug(s"Execute workflow. Result of submission: ${async}")
