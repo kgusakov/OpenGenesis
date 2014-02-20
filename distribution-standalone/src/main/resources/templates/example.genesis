@@ -16,6 +16,37 @@ template {
         }
     }
 
+    workflow("Deploy") {
+        variables {
+            deploymentMode = {
+                description = "Deployment Mode"
+                isOptional = true
+                defaultVal = 'FullDeployment'
+                dataSource = staticList {
+                    values = ['FullDeployment', 'PartialDeployment']
+                }
+            }
+
+            variable("releaseUnitList").as(Boolean).description("Partial Deployment").optional(true).disabled({true}).inlineDataSource(staticList{values=[1,2,3]})
+ /*           releaseUnitList = {
+                description = "Partial Deployment"
+                isOptional = true
+                multiChoice = true
+                disabled = { true }
+                dataSource = staticList {
+                    values = ["WebApplication", "WebService", "Database"]
+                }
+            }*/
+        }
+        steps {
+            execLocal {
+                phase = "init"
+                shell = "sh"
+                commands = ['echo "Deploy of environment..."']
+            }
+        }
+    }
+
     workflow("destroy") {
         steps {
             execLocal {

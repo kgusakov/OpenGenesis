@@ -5,6 +5,8 @@ import groovy.lang.{MissingPropertyException, Closure, GroovyObjectSupport}
 import collection.mutable.ListBuffer
 import reflect.BeanProperty
 import groovy.util.Expando
+import scala.None
+import com.griddynamics.genesis.template.support.VariablesSupport
 
 class VariableDeclaration(dsObjSupport: Option[Closure[Unit]],
                           dataSourceFactories : Seq[DataSourceFactory],
@@ -100,7 +102,7 @@ class VariableDetails(val name : String, val clazz : Class[_ <: AnyRef], val des
                       val validators : Seq[(String, Closure[Boolean])], val isOptional: Boolean = false, val defaultValue: () => Option[Any],
                       val valuesList: VariableDetails.ValuesListType = None, val dependsOn: Seq[String],
                       val group: Option[GroupDetails] = None, val hidden: Boolean = false, val multiChoice: Boolean = false,
-                      val disabled: Boolean = false)
+                      val disabled: Option[Closure[Boolean]] = None)
 
 class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
                       val dataSourceFactories: Seq[DataSourceFactory],
@@ -111,9 +113,8 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
     @BeanProperty var defaultVal: Any = _
     @BeanProperty var isOptional: Boolean = false
     @BeanProperty var multiChoice: Boolean = false
-    @BeanProperty var disabled: Boolean = false
-
-  private var isHidden = false
+    @BeanProperty var isDisabled: Option[Closure[Boolean]] = None
+    private var isHidden = false
 
     var validators = new collection.mutable.LinkedHashMap[String, Closure[Boolean]]
     var props = new collection.mutable.LinkedHashMap[String, AnyRef]
@@ -154,6 +155,11 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
 
     def optional() = {
       isOptional = true
+      this
+    }
+
+    def disabled(arg: Closure[Boolean]) {
+      isDisabled = Some(arg)
       this
     }
 
@@ -255,7 +261,8 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
              dataSourceRef.flatMap(ds => {dsObj.flatMap(_.default(ds))})
          }
       }
-      new VariableDetails(name, clazz, description, validators.toSeq, isOptional, default, values, parents.toList, group, isHidden, multiChoice, disabled)
+
+      new VariableDetails(name, clazz, description, validators.toSeq, isOptional, default, values, parents.toList, group, isHidden, multiChoice, isDisabled)
     }
 }
 

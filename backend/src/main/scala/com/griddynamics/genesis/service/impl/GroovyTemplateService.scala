@@ -319,6 +319,17 @@ class GroovyWorkflowDefinition(val template: EnvironmentTemplate, val workflow :
         //all values stored as strings, so we need to use string repr. to convert here as well
         val typedVal = convert(String.valueOf(value), variable)
 
+        log.info("I'm here!!!!!!")
+        variable.disabled.foreach(_.setDelegate(new Expando() with VariablesSupport {
+          // must throw exception on missing properties(instead of return null) for delegation to work
+          override def getProperty(name: String) = if (name != Reserved.varsRef) getProperties.containsKey(name) match {
+            case true => super.getProperty(name)
+            case _ => throw new MissingPropertyException(name, classOf[Expando])
+          } else get$vars
+
+          def variables = context.mapValues{plainValue(_)}
+        }))
+
         variable.validators.view.map { case (errorMsg, validator) =>
           validator.setDelegate(new Expando() with VariablesSupport {
            // must throw exception on missing properties(instead of return null) for delegation to work
@@ -341,7 +352,7 @@ class GroovyWorkflowDefinition(val template: EnvironmentTemplate, val workflow :
       }
     }
 
-    private def varDesc(v: VariableDetails, resolvedVariables: Map[String, Any] = Map()) = {
+    private def varDesc(v: VariableDetails, resolvedVariables: Map[String, Any] = Map(), dependents: Seq[VariableDetails] = List()) = {
       val dependsOn = if (v.dependsOn.isEmpty) None else Some(v.dependsOn.toList)
       val (varDsDefault, possibleValues) = v.valuesList.map(_.apply(resolvedVariables)) match {
         case None => (v.defaultValue(), None)
@@ -350,8 +361,16 @@ class GroovyWorkflowDefinition(val template: EnvironmentTemplate, val workflow :
         case Some((default, values)) => (default, Option(values))
       }
 
+
+      val disabled = v.disabled match {
+        case Some(cls) => {
+          import scala.collection.JavaConversions._
+          cls.setDelegate(new Expando(Map((for (variable <- dependents) yield variable.name -> variable):_*)))
+          cls.call()
+        }
+        case None => false}
       new VariableDescription(v.name, v.clazz, v.description, v.isOptional, v.defaultValue().map(String.valueOf(_)).getOrElse(varDsDefault.map(String.valueOf(_)).getOrElse(null)),
-        possibleValues, dependsOn, v.group.map(groupDesc), v.hidden, v.multiChoice, v.disabled)
+        possibleValues, dependsOn, v.group.map(groupDesc), v.hidden, v.multiChoice, disabled)
     }
 
   private def groupDesc(gd: GroupDetails) = VarGroupDesc(name = gd.name, description = gd.description, required = gd.required, defaultVar = gd.defaultVar)
