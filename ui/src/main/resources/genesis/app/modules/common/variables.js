@@ -328,6 +328,7 @@ function(genesis, status, $, _, Backbone) {
           var nameValueMap = self._collectValueObject(resolvedVariables);
 
           self.applyVariables(nameValueMap, self.configurationId).done(function (data) {
+              console.log(data);
             _(data).each(function (variable) {
               self._enableChecked(variable);
               if (descendants.contains(variable.name) && self._isMultiValue(variable)) {

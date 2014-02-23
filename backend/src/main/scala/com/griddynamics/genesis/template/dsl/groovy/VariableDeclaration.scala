@@ -102,7 +102,7 @@ class VariableDetails(val name : String, val clazz : Class[_ <: AnyRef], val des
                       val validators : Seq[(String, Closure[Boolean])], val isOptional: Boolean = false, val defaultValue: () => Option[Any],
                       val valuesList: VariableDetails.ValuesListType = None, val dependsOn: Seq[String],
                       val group: Option[GroupDetails] = None, val hidden: Boolean = false, val multiChoice: Boolean = false,
-                      val disabled: Option[Closure[Boolean]] = None)
+                      val disabled: Closure[Boolean] = new Closure[Boolean]{false})
 
 class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
                       val dataSourceFactories: Seq[DataSourceFactory],
@@ -113,9 +113,9 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
     @BeanProperty var defaultVal: Any = _
     @BeanProperty var isOptional: Boolean = false
     @BeanProperty var multiChoice: Boolean = false
-    @BeanProperty var isDisabled: Option[Closure[Boolean]] = None
     private var isHidden = false
 
+    var isDisabled: Closure[Boolean] = _
     var validators = new collection.mutable.LinkedHashMap[String, Closure[Boolean]]
     var props = new collection.mutable.LinkedHashMap[String, AnyRef]
     var parents = new ListBuffer[String]
@@ -159,7 +159,7 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
     }
 
     def disabled(arg: Closure[Boolean]) {
-      isDisabled = Some(arg)
+      isDisabled = arg
       this
     }
 
