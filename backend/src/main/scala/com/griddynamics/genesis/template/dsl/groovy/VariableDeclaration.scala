@@ -158,7 +158,7 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
       this
     }
 
-    def disabled(arg: Closure[Boolean]) {
+    def disabled(arg: Closure[Boolean]): VariableBuilder = {
       isDisabled = arg
       this
     }

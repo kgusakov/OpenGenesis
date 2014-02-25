@@ -33,8 +33,7 @@ import com.griddynamics.genesis.repository.DatabagRepository
 import com.griddynamics.genesis.service
 import com.griddynamics.genesis.service._
 import com.griddynamics.genesis.template._
-import com.griddynamics.genesis.template.dsl.groovy._
-import com.griddynamics.genesis.template.dsl.groovy.{Delegate => DslDelegate}
+import com.griddynamics.genesis.template.dsl.groovy.{Delegate => DslDelegate, _}
 import com.griddynamics.genesis.util.{TryingUtil, ScalaUtils, Logging}
 import com.griddynamics.genesis.workflow.Step
 import groovy.lang._
@@ -49,6 +48,73 @@ import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer
 import support.VariablesSupport
 import com.griddynamics.genesis.template.dsl.groovy.transformations.{MacroExpand, PhaseContainer, Context}
 import scala.tools.ant.sabbus.CompilationFailure
+import com.griddynamics.genesis.service.impl.TmplCacheKey
+import com.griddynamics.genesis.api.Failure
+import scala.Some
+import com.griddynamics.genesis.template.VersionedTemplate
+import com.griddynamics.genesis.service.VarGroupDesc
+import com.griddynamics.genesis.service.TemplateDescription
+import com.griddynamics.genesis.cache.CacheConfig
+import com.griddynamics.genesis.service.ValidationError
+import com.griddynamics.genesis.api.Success
+import com.griddynamics.genesis.service.Builders
+import com.griddynamics.genesis.plugin.GenesisStep
+import scala.tools.ant.sabbus.CompilationFailure
+import com.griddynamics.genesis.model.EntityAttr
+import com.griddynamics.genesis.api.Configuration
+import com.griddynamics.genesis.service.impl.TmplDefinitionKey
+import com.griddynamics.genesis.service.impl.TmplCacheKey
+import com.griddynamics.genesis.api.Failure
+import scala.Some
+import com.griddynamics.genesis.service.ValidationError
+import com.griddynamics.genesis.template.VersionedTemplate
+import com.griddynamics.genesis.api.Success
+import com.griddynamics.genesis.plugin.GenesisStep
+import com.griddynamics.genesis.service.TemplateDescription
+import scala.tools.ant.sabbus.CompilationFailure
+import com.griddynamics.genesis.model.EntityAttr
+import com.griddynamics.genesis.cache.CacheConfig
+import com.griddynamics.genesis.api.Configuration
+import com.griddynamics.genesis.service.impl.TmplDefinitionKey
+import com.griddynamics.genesis.service.impl.TmplCacheKey
+import com.griddynamics.genesis.api.Failure
+import scala.Some
+import com.griddynamics.genesis.service.ValidationError
+import com.griddynamics.genesis.template.VersionedTemplate
+import com.griddynamics.genesis.api.Success
+import com.griddynamics.genesis.plugin.GenesisStep
+import com.griddynamics.genesis.service.TemplateDescription
+import scala.tools.ant.sabbus.CompilationFailure
+import com.griddynamics.genesis.model.EntityAttr
+import com.griddynamics.genesis.cache.CacheConfig
+import com.griddynamics.genesis.api.Configuration
+import com.griddynamics.genesis.service.impl.TmplDefinitionKey
+import com.griddynamics.genesis.service.impl.TmplCacheKey
+import com.griddynamics.genesis.api.Failure
+import scala.Some
+import com.griddynamics.genesis.service.ValidationError
+import com.griddynamics.genesis.template.VersionedTemplate
+import com.griddynamics.genesis.api.Success
+import com.griddynamics.genesis.plugin.GenesisStep
+import com.griddynamics.genesis.service.TemplateDescription
+import scala.tools.ant.sabbus.CompilationFailure
+import com.griddynamics.genesis.model.EntityAttr
+import com.griddynamics.genesis.cache.CacheConfig
+import com.griddynamics.genesis.api.Configuration
+import com.griddynamics.genesis.service.impl.TmplDefinitionKey
+import com.griddynamics.genesis.service.impl.TmplCacheKey
+import com.griddynamics.genesis.api.Failure
+import scala.Some
+import com.griddynamics.genesis.service.ValidationError
+import com.griddynamics.genesis.template.VersionedTemplate
+import com.griddynamics.genesis.api.Success
+import com.griddynamics.genesis.plugin.GenesisStep
+import com.griddynamics.genesis.service.TemplateDescription
+import scala.tools.ant.sabbus.CompilationFailure
+import com.griddynamics.genesis.model.EntityAttr
+import com.griddynamics.genesis.cache.CacheConfig
+import com.griddynamics.genesis.api.Configuration
+import com.griddynamics.genesis.service.impl.TmplDefinitionKey
 
 @RemoteGateway("groovy template service")
 class GroovyTemplateService(val templateRepoService : TemplateRepoService,
@@ -342,7 +408,7 @@ class GroovyWorkflowDefinition(val template: EnvironmentTemplate, val workflow :
     }
 
     private def varDesc(v: VariableDetails, resolvedVariables: Map[String, Any] = Map(), dependents: Seq[VariableDetails] = List()) = {
-      val dependsOn = if (v.dependsOn.isEmpty) None else Some(v.dependsOn.toList)
+
       val (varDsDefault, possibleValues) = v.valuesList.map(_.apply(resolvedVariables)) match {
         case None => (v.defaultValue(), None)
         // if datasource defines some default value but no list, then it should be rendered as input(not as select)
@@ -350,13 +416,22 @@ class GroovyWorkflowDefinition(val template: EnvironmentTemplate, val workflow :
         case Some((default, values)) => (default, Option(values))
       }
 
+      val links = ListBuffer[String]()
       val disabled =
         if (v.disabled != null) {
           v.disabled.setDelegate(new ScopeHolder(resolvedVariables) with VariablesSupport {
             override def variables: Map[String, Any] = resolvedVariables
+            override def get$vars = new java.util.HashMap[String, Any](super.get$vars) {
+              override def get(key: Any) = {
+                links += key.toString
+                super.get(key)
+              }
+            }
           })
           v.disabled.call()
         } else false;
+
+      val dependsOn = if (v.dependsOn.isEmpty && links.toList.isEmpty) None else Some(v.dependsOn.toList ++ links.toList)
 
       new VariableDescription(v.name, v.clazz, v.description, v.isOptional, v.defaultValue().map(String.valueOf(_)).getOrElse(varDsDefault.map(String.valueOf(_)).getOrElse(null)),
       possibleValues, dependsOn, v.group.map(groupDesc), v.hidden, v.multiChoice, disabled)
