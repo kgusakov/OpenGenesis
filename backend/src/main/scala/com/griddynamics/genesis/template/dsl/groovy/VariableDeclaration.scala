@@ -153,6 +153,11 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
         this
     }
 
+    def multiChoice(multiChoice: Boolean): VariableBuilder = {
+      this.multiChoice = multiChoice
+      this
+    }
+
     def optional() = {
       isOptional = true
       this
