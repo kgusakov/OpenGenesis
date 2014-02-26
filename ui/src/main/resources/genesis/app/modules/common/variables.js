@@ -173,7 +173,7 @@ function(genesis, status, $, _, Backbone) {
     },
 
     _enableChecked: function (variable) {
-      var enable = true;
+      var enable = !variable.disabled;
       if (variable.group) {
         enable = this.$groupVariableRadio(variable).is(':checked');
       }
@@ -328,7 +328,6 @@ function(genesis, status, $, _, Backbone) {
           var nameValueMap = self._collectValueObject(resolvedVariables);
 
           self.applyVariables(nameValueMap, self.configurationId).done(function (data) {
-              console.log(data);
             _(data).each(function (variable) {
               self._enableChecked(variable);
               if (descendants.contains(variable.name) && self._isMultiValue(variable)) {
@@ -338,7 +337,7 @@ function(genesis, status, $, _, Backbone) {
 
             var unresolvedVarNames = _(descendants.difference(_(data).pluck("name")));
             _(self.variables).each(function (v) {
-              if (v.group && unresolvedVarNames.contains(v.name) && self.$groupVariableRadio(v).is(':checked')) {
+              if (v.group && unresolvedVarNames.contains(v.name) && self.$groupVariableRadio(v).is(':checked') && !v.disabled) {
                 self.$('#' + escapeCss(v.name)).removeAttr("disabled");
                 self._setEnableToMultiSelect(self.$('#' + escapeCss(v.name)), 'enable');
               }
