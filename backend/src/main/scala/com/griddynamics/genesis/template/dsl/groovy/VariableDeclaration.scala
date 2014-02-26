@@ -113,9 +113,9 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
     @BeanProperty var defaultVal: Any = _
     @BeanProperty var isOptional: Boolean = false
     @BeanProperty var multiChoice: Boolean = false
+    @BeanProperty var disabled: Closure[Boolean] = _
     private var isHidden = false
 
-    var isDisabled: Closure[Boolean] = _
     var validators = new collection.mutable.LinkedHashMap[String, Closure[Boolean]]
     var props = new collection.mutable.LinkedHashMap[String, AnyRef]
     var parents = new ListBuffer[String]
@@ -163,8 +163,8 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
       this
     }
 
-    def disabled(arg: Closure[Boolean]): VariableBuilder = {
-      isDisabled = arg
+    def disabled(disabled: Closure[Boolean]): VariableBuilder = {
+      this.disabled = disabled
       this
     }
 
@@ -267,7 +267,7 @@ class VariableBuilder(val name : String, dsClosure: Option[Closure[Unit]],
          }
       }
 
-      new VariableDetails(name, clazz, description, validators.toSeq, isOptional, default, values, parents.toList, group, isHidden, multiChoice, isDisabled)
+      new VariableDetails(name, clazz, description, validators.toSeq, isOptional, default, values, parents.toList, group, isHidden, multiChoice, disabled)
     }
 }
 
