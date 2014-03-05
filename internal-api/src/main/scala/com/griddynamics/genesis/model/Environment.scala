@@ -46,20 +46,20 @@ class Environment(val name: String,
         env
     }
 
-    def deploymentAttrs: Seq[DeploymentAttribute] = {
+    def deploymentAttrs: Seq[DeploymentAttribute[Any]] = {
       this.get(Environment.DeploymentAttr).getOrElse(Seq())
     }
 
-    def deploymentAttrs_=(attrs: Seq[DeploymentAttribute]) {
+    def deploymentAttrs_=(attrs: Seq[DeploymentAttribute[Any]]) {
       this(Environment.DeploymentAttr)  = attrs
     }
 }
 
 object Environment {
-  val DeploymentAttr = EntityAttr[Seq[DeploymentAttribute]]("deployment")
+  val DeploymentAttr = EntityAttr[Seq[DeploymentAttribute[Any]]]("deployment")
 
 }
 
 @SerialVersionUID(8586431731087756517L)
 @XStreamAlias("attribute")
-case class DeploymentAttribute(key: String, value: String, desc: String)
+case class DeploymentAttribute[T](key: String, value: T, desc: String)

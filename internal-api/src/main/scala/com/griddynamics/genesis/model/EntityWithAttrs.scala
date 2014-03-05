@@ -24,6 +24,7 @@ package com.griddynamics.genesis.model
 
 import org.squeryl.annotations.Transient
 import com.thoughtworks.xstream.XStream
+import com.thoughtworks.xstream.converters.collections.MapConverter
 
 case class EntityAttr[T](name: String)
 
@@ -118,8 +119,10 @@ object AttrsSerialization {
     val x = new XStream()
     x.registerConverter(new XStreamListConverter(x.getMapper))
     x.registerConverter(new XStreamSomeConverter(x.getMapper))
+    x.registerConverter(new MapConverter(x.getMapper))
     x.alias("list", classOf[::[_]])
-    x.processAnnotations(classOf[DeploymentAttribute])
+    x.processAnnotations(classOf[DeploymentAttribute[String]])
+    x.processAnnotations(classOf[DeploymentAttribute[Map[String, String]]])
     x.processAnnotations(classOf[IpAddresses])
     x
   }

@@ -373,7 +373,7 @@ object GenesisRestService {
         )
     }
 
-  private def attrDesc(attrs: Seq[model.DeploymentAttribute]) = attrs.map( attr => attr.key -> Attribute(attr.value, attr.desc)).toMap
+  private def attrDesc(attrs: Seq[model.DeploymentAttribute[Any]]) = attrs.map( attr => attr.key -> Attribute(attr.value.toString, attr.desc)).toMap
 
   private def envs(envs: Seq[(model.Environment, Option[Workflow])], configNames: Map[Int, String]) = for ((env, workflowOption) <- envs) yield
     Environment(env.id, env.name, env.status.toString, stepsCompleted(workflowOption), env.creator,
