@@ -48,7 +48,7 @@ class UpdateEnvAttributesStepBuilderFactory extends StepBuilderFactory {
   override def newStepBuilder = new UpdateEnvAttributesStepBuilder
 }
 
-case class UpdateEnvAttributeStep(entries: Seq[DeploymentAttribute[Any]]) extends Step {
+case class UpdateEnvAttributeStep(entries: Seq[DeploymentAttribute]) extends Step {
   override def stepDescription = ""
 }
 

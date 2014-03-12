@@ -121,8 +121,7 @@ object AttrsSerialization {
     x.registerConverter(new XStreamSomeConverter(x.getMapper))
     x.registerConverter(new MapConverter(x.getMapper))
     x.alias("list", classOf[::[_]])
-    x.processAnnotations(classOf[DeploymentAttribute[String]])
-    x.processAnnotations(classOf[DeploymentAttribute[Map[String, String]]])
+    x.processAnnotations(classOf[DeploymentAttribute])
     x.processAnnotations(classOf[IpAddresses])
     x
   }
